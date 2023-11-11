@@ -21,13 +21,13 @@ void	clean(char **target)
 	}
 }
 
-char	*join_line(int nl_position, char **buffer)
+char	*join_line(int pos, char **buffer)
 {
-	char	*res;
+	char	*rtn;
 	char	*tmp;
 
 	tmp = NULL;
-	if (nl_position <= 0)
+	if (pos <= 0)
 	{
 		if (**buffer == '\0')
 		{
@@ -35,27 +35,27 @@ char	*join_line(int nl_position, char **buffer)
 			*buffer = NULL;
 			return (NULL);
 		}
-		res = *buffer;
+		rtn = *buffer;
 		*buffer = NULL;
-		return (res);
+		return (rtn);
 	}
-	tmp = ft_sub_str(*buffer, nl_position, BUFFER_SIZE);
-	res = *buffer;
-	res[nl_position] = 0;
+	tmp = ft_sub_str(*buffer, pos, BUFFER_SIZE);
+	rtn = *buffer;
+	rtn[pos] = 0;
 	*buffer = tmp;
-	return (res);
+	return (rtn);
 }
 
 char	*read_line(int fd, char **buffer, char *read_return)
 {
-	ssize_t	bytes_read;
+	int		bytes_read;
 	char	*tmp;
-	char	*nl;
+	char	*rtn;
 
-	nl = ft_strchr(*buffer, '\n');
+	rtn = ft_strchr(*buffer, '\n');
 	tmp = NULL;
 	bytes_read = 0;
-	while (nl == NULL)
+	while (rtn == NULL)
 	{
 		bytes_read = read(fd, read_return, BUFFER_SIZE);
 		if (bytes_read <= 0)
@@ -64,9 +64,9 @@ char	*read_line(int fd, char **buffer, char *read_return)
 		tmp = ft_str_join(*buffer, read_return);
 		clean(buffer);
 		*buffer = tmp;
-		nl = ft_strchr(*buffer, '\n');
+		rtn = ft_strchr(*buffer, '\n');
 	}
-	return (join_line(nl - *buffer + 1, buffer));
+	return (join_line(rtn - *buffer + 1, buffer));
 }
 
 char	*get_next_line(int fd)
