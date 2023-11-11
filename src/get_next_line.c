@@ -6,7 +6,7 @@
 /*   By: ekarpawi <ekarpawi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/10 15:48:08 by ekarpawi          #+#    #+#             */
-/*   Updated: 2023/11/11 18:30:40 by ekarpawi         ###   ########.fr       */
+/*   Updated: 2023/11/11 18:55:44 by ekarpawi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,7 @@ char	*join_line(int pos, char **buffer)
 	{
 		if (**buffer == '\0')
 		{
-			free(*buffer);
-			*buffer = NULL;
+			clean(buffer);
 			return (NULL);
 		}
 		rtn = *buffer;
