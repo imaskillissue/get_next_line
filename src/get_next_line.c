@@ -6,78 +6,83 @@
 /*   By: ekarpawi <ekarpawi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/10 15:48:08 by ekarpawi          #+#    #+#             */
-/*   Updated: 2023/11/10 15:48:09 by ekarpawi         ###   ########.fr       */
+/*   Updated: 2023/11/11 18:30:40 by ekarpawi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static char	*read_and_buffer(int fd, char **rtn, char **buffer)
+void	clean(char **target)
 {
-	int	i;
-
-	i = BUFFER_SIZE;
-	while (i == BUFFER_SIZE)
+	if (target)
 	{
-		i = read(fd, *buffer, BUFFER_SIZE);
-		if (i == -1 || (i == 0 && !ft_strlen(*rtn)))
-		{
-			free(*rtn);
-			free(*buffer);
-			return (NULL);
-		}
-		if (i == 0)
-			break ;
-		*rtn = ft_str_join(*rtn, *buffer);
-		if (ft_strchr(*buffer, '\n'))
-			break ;
+		free(*target);
+		*target = NULL;
 	}
-	return (*rtn);
 }
 
-static char *remove_past(char **rtn)
+char	*join_line(int nl_position, char **buffer)
 {
-	char	*new_rtn;
-	int		i;
-	int		j;
+	char	*res;
+	char	*tmp;
 
-	i = 0;
-	if (*rtn == NULL)
-		return (NULL);
-	while ((*rtn)[i] != '\n')
-		i++;
-	new_rtn = ft_calloc(ft_strlen(*rtn) - i + 1, sizeof(char));
-	if (!new_rtn)
-		return (NULL);
-	j = 0;
-	while ((*rtn)[++i])
-		new_rtn[j++] = (*rtn)[i];
-	return (new_rtn);
+	tmp = NULL;
+	if (nl_position <= 0)
+	{
+		if (**buffer == '\0')
+		{
+			free(*buffer);
+			*buffer = NULL;
+			return (NULL);
+		}
+		res = *buffer;
+		*buffer = NULL;
+		return (res);
+	}
+	tmp = ft_sub_str(*buffer, nl_position, BUFFER_SIZE);
+	res = *buffer;
+	res[nl_position] = 0;
+	*buffer = tmp;
+	return (res);
+}
+
+char	*read_line(int fd, char **buffer, char *read_return)
+{
+	ssize_t	bytes_read;
+	char	*tmp;
+	char	*nl;
+
+	nl = ft_strchr(*buffer, '\n');
+	tmp = NULL;
+	bytes_read = 0;
+	while (nl == NULL)
+	{
+		bytes_read = read(fd, read_return, BUFFER_SIZE);
+		if (bytes_read <= 0)
+			return (join_line(bytes_read, buffer));
+		read_return[bytes_read] = 0;
+		tmp = ft_str_join(*buffer, read_return);
+		clean(buffer);
+		*buffer = tmp;
+		nl = ft_strchr(*buffer, '\n');
+	}
+	return (join_line(nl - *buffer + 1, buffer));
 }
 
 char	*get_next_line(int fd)
 {
-	static char		*rtn;
-	char			*buffer;
-	int				i;
+	static char	*buffers[255];
+	char		*line;
+	char		*rtn;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || fd > 255 || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (rtn == NULL)
-		rtn = ft_calloc(1, sizeof(char));
-	else
-		rtn = remove_past(&rtn);
-	buffer = ft_calloc(BUFFER_SIZE, sizeof(char));
-	if (!rtn || !buffer)
+	line = malloc(sizeof(char) * BUFFER_SIZE + 1);
+	if (!line)
 		return (NULL);
-	rtn = read_and_buffer(fd, &rtn, &buffer);
-	if (!rtn)
-		return (NULL);
-	free(buffer);
-	if (!ft_strchr(rtn, '\n') || rtn[0] == '\n')
-		return (rtn);
-	i = 0;
-	while (rtn[i++] != '\n')
-		;
-	return (ft_sub_str(rtn, 0, i));
+	if (!buffers[fd])
+		buffers[fd] = ft_strdup("");
+	rtn = read_line(fd, &buffers[fd], line);
+	clean(&line);
+	return (rtn);
 }

@@ -26,4 +26,4 @@ char	*ft_strchr(const char *str, int ch);
 
 int		ft_strlen(const char *str);
 
-void	*ft_calloc(size_t count, size_t size);
+char	*ft_strdup(const char *str);
