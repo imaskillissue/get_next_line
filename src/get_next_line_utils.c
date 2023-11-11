@@ -91,5 +91,6 @@ char	*ft_sub_str(char *str, int start, int end)
 	i = 0;
 	while (start < end)
 		rtn[i++] = str[start++];
+	free(str);
 	return (rtn);
 }
