@@ -12,13 +12,14 @@
 
 #include "get_next_line.h"
 
-void	clean(char **target)
+void	*clean(char **target)
 {
 	if (target)
 	{
 		free(*target);
 		*target = NULL;
 	}
+	return (NULL);
 }
 
 char	*join_line(int pos, char **buffer)
@@ -62,6 +63,8 @@ char	*read_line(int fd, char **buffer, char *read_return)
 		read_return[bytes_read] = 0;
 		tmp = ft_str_join(*buffer, read_return);
 		clean(buffer);
+		if (!tmp)
+			return (NULL);
 		*buffer = tmp;
 		rtn = ft_strchr(*buffer, '\n');
 	}
@@ -76,11 +79,21 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || fd > 255 || BUFFER_SIZE <= 0)
 		return (NULL);
+	if (read(fd, 0, 0) < 0)
+	{
+		clean(&buffers[fd]);
+		return (NULL);
+	}
 	line = malloc(sizeof(char) * BUFFER_SIZE + 1);
 	if (!line)
 		return (NULL);
 	if (!buffers[fd])
 		buffers[fd] = ft_strdup("");
+	if (!buffers[fd])
+	{
+		clean(&line);
+		return (NULL);
+	}
 	rtn = read_line(fd, &buffers[fd], line);
 	clean(&line);
 	return (rtn);
