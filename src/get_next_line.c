@@ -12,7 +12,7 @@
 
 #include "get_next_line.h"
 
-void	*clean(char **target)
+void	*secure_free(char **target)
 {
 	if (target)
 	{
@@ -22,7 +22,7 @@ void	*clean(char **target)
 	return (NULL);
 }
 
-char	*join_line(int pos, char **buffer)
+char	*format_line(int pos, char **buffer)
 {
 	char	*rtn;
 	char	*tmp;
@@ -31,10 +31,7 @@ char	*join_line(int pos, char **buffer)
 	if (pos <= 0)
 	{
 		if (**buffer == '\0')
-		{
-			clean(buffer);
-			return (NULL);
-		}
+			return (secure_free(buffer));
 		rtn = *buffer;
 		*buffer = NULL;
 		return (rtn);
@@ -59,16 +56,16 @@ char	*read_line(int fd, char **buffer, char *read_return)
 	{
 		bytes_read = read(fd, read_return, BUFFER_SIZE);
 		if (bytes_read <= 0)
-			return (join_line(bytes_read, buffer));
+			return (format_line(bytes_read, buffer));
 		read_return[bytes_read] = 0;
 		tmp = ft_str_join(*buffer, read_return);
-		clean(buffer);
+		secure_free(buffer);
 		if (!tmp)
 			return (NULL);
 		*buffer = tmp;
 		rtn = ft_strchr(*buffer, '\n');
 	}
-	return (join_line(rtn - *buffer + 1, buffer));
+	return (format_line(rtn - *buffer + 1, buffer));
 }
 
 char	*get_next_line(int fd)
@@ -80,21 +77,15 @@ char	*get_next_line(int fd)
 	if (fd < 0 || fd > 255 || BUFFER_SIZE <= 0)
 		return (NULL);
 	if (read(fd, 0, 0) < 0)
-	{
-		clean(&buffers[fd]);
-		return (NULL);
-	}
+		return (secure_free(&buffers[fd]));
 	line = malloc(sizeof(char) * BUFFER_SIZE + 1);
 	if (!line)
 		return (NULL);
 	if (!buffers[fd])
 		buffers[fd] = ft_strdup("");
 	if (!buffers[fd])
-	{
-		clean(&line);
-		return (NULL);
-	}
+		return (secure_free(&line));
 	rtn = read_line(fd, &buffers[fd], line);
-	clean(&line);
+	secure_free(&line);
 	return (rtn);
 }
